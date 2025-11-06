@@ -1,3 +1,9 @@
+import {type TypedStructure } from '../types.ts'
+
+interface U8 extends TypedStructure {
+    alignment: 2;
+}
+
 export const U8 = {
     get byteLength() {
         return 1;
@@ -8,15 +14,16 @@ export const U8 = {
     },
 
     init(buffer, offset) {
-        const arr = new Uint8Array(buffer, offset, 1);
+        const arr = new Uint8Array(buffer, offset, U8.byteLength);
+
         return {
             get() {
                 return arr;
             },
 
-            set(value) {
+            set(value: number) {
                 arr[0] = value;
             }
         }
     }
-}
+} as U8;

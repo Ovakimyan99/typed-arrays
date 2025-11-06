@@ -1,11 +1,15 @@
+import { type TypedStructure } from "../types.ts";
+
 export class TypedArray {
-    constructor(type, length) {
+    byteLength: number;
+
+    constructor(public type: TypedStructure, public length: number) {
         this.byteLength = type.byteLength * length;
         this.length = length;
         this.type = type;
     }
 
-    create(data, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
+    create<T>(data: ArrayLike<T>, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
         const view = new TypedArrayView(this.type, buffer, this.byteLength, offset);
 
         for (let i = 0; i < this.length && i < data.length; i++) {
@@ -19,13 +23,13 @@ export class TypedArray {
         return new TypedArrayView(this.type, buffer, this.byteLength, offset);
     }
 
-    init(buffer, offset) {
+    init(buffer: ArrayBuffer, offset: number) {
         let view = this.from(buffer, offset);
 
         return {
             get: () => view,
 
-            set: (data) => {
+            set: (data: ArrayBuffer) => {
                 view = this.create(data, buffer, offset);
             }
         };
@@ -33,43 +37,41 @@ export class TypedArray {
 }
 
 class TypedArrayView {
+    constructor(
+        private type: TypedStructure,
+        private _buffer: ArrayBuffer,
+        private _byteLength: number,
+        private offset: number
+    ) {}
+
     get buffer() {
-        return this.#buffer;
+        return this._buffer;
     }
 
     get byteLength() {
-        return this.#byteLength;
+        return this._byteLength;
     }
 
     get byteOffset() {
-        return this.#byteOffset;
+        return this.offset;
     }
 
     get BYTES_PER_ELEMENT() {
-        return this.#type.byteLength;
+        return this.type.byteLength;
     }
 
-    #type;
-    #buffer;
-    #byteLength;
-    #byteOffset;
-
-    constructor(type, buffer, byteLength, offset) {
-        this.#buffer = buffer;
-        this.#type = type;
-        this.#byteLength = byteLength;
-        this.#byteOffset = offset;
-    }
-
-    get(index) {
+    get(index: number) {
         return this.#init(index).get();
     }
 
-    set(index, value) {
+    set(index: number, value: unknown) {
         this.#init(index).set(value)
     }
 
-    #init(index) {
-        return this.#type.init(this.#buffer, this.#byteOffset + this.#type.byteLength * index);
+    #init(index: number) {
+        return this.type.init(
+            this._buffer,
+            this.byteOffset + this.type.byteLength * index,
+        );
     }
 }

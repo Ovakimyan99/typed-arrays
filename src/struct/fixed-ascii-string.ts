@@ -1,7 +1,13 @@
-export const FixedAsciiString = (maxLength) => {
+import { type TypedStructure } from '../types.ts'
+
+export const FixedAsciiString = (maxLength: number): TypedStructure => {
     return {
         get byteLength() {
-            return maxLength
+            return maxLength;
+        },
+
+        get alignment() {
+            return 0;
         },
 
         init(buffer, offset) {
@@ -12,9 +18,9 @@ export const FixedAsciiString = (maxLength) => {
                     return String.fromCharCode(...arr);
                 },
 
-                set(str) {
+                set(str: string) {
                     for (let i = 0; i < maxLength; i++) {
-                        arr[i] = i >= str.length ? 0 : String.charCodeAt(i);
+                        arr[i] = str.codePointAt(i) ?? 0;
                     }
                 },
             }

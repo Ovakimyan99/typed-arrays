@@ -1,3 +1,9 @@
+import { type TypedStructure } from '../types.ts'
+
+interface U16 extends TypedStructure {
+    alignment: 2
+}
+
 export const U16 = {
     get byteLength() {
         return 2;
@@ -11,16 +17,16 @@ export const U16 = {
         const remainder = offset % U16.alignment;
         offset = remainder === 0 ? offset : offset - remainder;
 
-        const arr = new Uint16Array(value, offset, 2);
+        const arr = new Uint16Array(value, offset, U16.byteLength);
 
         return {
             get() {
                 return arr;
             },
 
-            set(value) {
+            set(value: number) {
                 arr[0] = value;
             },
         }
     }
-}
+} as U16

@@ -1,4 +1,4 @@
-import { Struct, FixedAsciiString, U16, U8, Tuple } from './src/struct/index.js'
+import { Struct, FixedAsciiString, U16, U8, Tuple } from './struct/index.js'
 
 const Color = Tuple(U8, U8, U8);
 
@@ -26,4 +26,4 @@ const TestStruct = new Struct({
     b: U16,         // 2 байта, alignment 2
 });
 
-export const PersonArray = new TypedArray(Person, 1e5)
+export const PersonArray = new TypedArray(Person, 1e5);
