@@ -8,6 +8,7 @@ export const personArray = PersonArray.create([
         lastName: 'Elton',
         color: [0xFF, 0x00, 0x00],
     },
+
     {
         age: 57,
         id: 532,
@@ -24,3 +25,5 @@ export const personArray = PersonArray.create([
         color: [0xFF, 0xEE, 0x00],
     },
 ])
+
+console.log(personArray.get(1).firstName)

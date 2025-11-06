@@ -9,7 +9,7 @@ export class TypedArray {
         this.type = type;
     }
 
-    create<T>(data: ArrayLike<T>, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
+    create(data: ArrayLike<unknown>, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
         const view = new TypedArrayView(this.type, buffer, this.byteLength, offset);
 
         for (let i = 0; i < this.length && i < data.length; i++) {
