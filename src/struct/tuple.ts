@@ -1,13 +1,10 @@
-import { type TypedStructure } from '../types.ts';
-import { Struct } from './struct.ts'
+import { type TypedStructure, type ValueOf } from '../types.js';
+import { Struct } from './struct.js'
 
-type TupleStructure = { [k: number]: TypedStructure };
-
-export function Tuple(...types: TypedStructure[]) {
-    const scheme = types.reduce((acc, type, i) => {
-        acc[i] = type;
-        return acc;
-    }, {} as TupleStructure);
-
-    return new Struct(scheme)
+export function Tuple<T extends readonly TypedStructure<unknown>[]>(
+    ...types: T
+  ): TypedStructure<{ [K in keyof T]: ValueOf<T[K]> }> {
+    const tuples = types.map((t, i) => [String(i), t])
+    const scheme = Object.fromEntries(tuples)
+    return new Struct(scheme);
 }

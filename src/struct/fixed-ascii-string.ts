@@ -1,29 +1,33 @@
-import { type TypedStructure } from '../types.ts'
+import { type TypedStructure } from '../types.js'
 
-export const FixedAsciiString = (maxLength: number): TypedStructure => {
-    return {
-        get byteLength() {
-            return maxLength;
-        },
+export const FixedAsciiString = (maxLength: number): TypedStructure<string> => ({
+    get byteLength() {
+        return maxLength;
+    },
 
-        get alignment() {
-            return 0;
-        },
+    init(buffer, offset) {
+        const arr = new Uint8Array(buffer, offset, maxLength);
 
-        init(buffer, offset) {
-            const arr = new Uint8Array(buffer, offset);
+        return {
+            get() {
+                // стоп по нулю
+                let end = 0;
+                while (end < arr.length && arr[end] !== 0) end++;
+                return String.fromCharCode(...arr.subarray(0, end));
+            },
 
-            return {
-                get() {
-                    return String.fromCharCode(...arr);
-                },
+            set(str: string) {
+                for (let i = 0; i < maxLength; i++) {
+                    arr[i] = 0;
+                }
 
-                set(str: string) {
-                    for (let i = 0; i < maxLength; i++) {
-                        arr[i] = str.codePointAt(i) ?? 0;
-                    }
-                },
-            }
+                const n = Math.min(maxLength, str.length);
+
+                for (let i = 0; i < n; i++) {
+                    const code = str.charCodeAt(i);
+                    arr[i] = code <= 0x7F ? code : 0x3F; // если не ASCII
+                }
+            },
         }
     }
-}
+})

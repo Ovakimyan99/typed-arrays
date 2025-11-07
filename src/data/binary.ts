@@ -1,5 +1,6 @@
-import {PersonArray} from '../index.js';
+import {PersonArrayStructure} from './scheme.js';
 import {personArray} from './data.js';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 writeFileSync('./data.binary', Buffer.from(personArray.buffer), { encoding: 'binary' })
 
@@ -7,8 +8,8 @@ const buf = readFileSync('./data.binary').buffer;
 
 console.time('parsing');
 
-console.log(PersonArray.from(buf).get(0).id)
-console.log(PersonArray.from(buf).get(1).id)
+console.log(PersonArrayStructure.from(buf).get(0).id)
+console.log(PersonArrayStructure.from(buf).get(1).id)
 
 console.timeEnd('parsing');
 

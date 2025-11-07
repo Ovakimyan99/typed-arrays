@@ -1,19 +1,26 @@
-import { type TypedStructure } from "../types.ts";
+import { type StructureAccess, type TypedStructure, type ValueOf } from "../types.js";
 
-type StructInput = {[k: string]: TypedStructure };
+export type StructValue<S extends Record<PropertyKey, TypedStructure<unknown>>> = {
+    [K in keyof S]: ValueOf<S[K]>;
+};
+
 type Scheme = [string | symbol, TypedStructure];
 
-export class Struct<T extends StructInput> {
+export class Struct<
+  S extends Record<PropertyKey, TypedStructure<unknown>>
+> implements TypedStructure<StructValue<S>> {
+
     byteLength: number;
     scheme: Map<string | symbol, TypedStructure>
 
-    constructor(scheme: T) {
+    constructor(scheme: S) {
         let totalLength = 0;
 
         this.scheme = new Map(
             Object.entries(scheme).flatMap((v): Scheme[] => {
                 const [key, Type] = v;
-                const alignment = this.#getAlignment(totalLength, Type.alignment ?? 1);
+                const size = Math.max(1, Type.alignment ?? 1);
+                const alignment = this.#getAlignment(totalLength, size);
 
                 const res: Scheme[] = [];
 
@@ -52,31 +59,29 @@ export class Struct<T extends StructInput> {
         this.byteLength = totalLength;
     }
 
-    create(data: StructInput, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
+    create(data: StructValue<S>, buffer = new ArrayBuffer(this.byteLength), offset = 0): StructValue<S> & StructView {
         const view = new StructView(buffer, this.byteLength, offset);
 
         this.scheme.forEach((type, key) => {
-            const {set, get} = type.init(buffer, offset);
             offset += type.byteLength;
 
             if (typeof key === 'symbol') return;
 
+            const {set, get} = type.init(buffer, offset);
             set(data[key]);
 
-            Object.defineProperties(view, {
-                [key]: {
-                    enumerable: true,
-                    configurable: true,
-                    get,
-                    set,
-                }
-            })
+            Object.defineProperty(view, key, {
+                enumerable: true,
+                configurable: true,
+                get,
+                set,
+            });
         })
 
         return view;
     }
 
-    from(buffer: ArrayBuffer, offset: number) {
+    from(buffer: ArrayBuffer, offset: number): StructView {
         const view = new StructView(buffer, this.byteLength, offset);
 
         this.scheme.forEach((Type, key) => {
@@ -85,21 +90,18 @@ export class Struct<T extends StructInput> {
 
             let accessors: null | ReturnType<typeof Type.init> = null;
 
-
             if (typeof key === 'symbol') {
                 offset += Type.byteLength;
                 return;
             }
 
-            Object.defineProperties(view, {
-                key: {
-                    enumerable: true,
-                    configurable: true,
-                    get: () => init().get(),
-                    set: (value) => {
-                        init().set(value)
-                    },
-                }
+            Object.defineProperty(view, key, {
+                enumerable: true,
+                configurable: true,
+                get: () => init().get(),
+                set: (value: ValueOf<S[typeof key]>) => {
+                    init().set(value)
+                },
             })
 
             // Это ленивая оптимизация, которая происходит
@@ -116,13 +118,13 @@ export class Struct<T extends StructInput> {
         return view;
     }
 
-    init(buffer: ArrayBuffer, offset: number) {
-        let view = this.from(buffer, offset);
+    init(buffer: ArrayBuffer, offset: number): StructureAccess<StructValue<S>> {
+        let view = this.from(buffer, offset) as StructValue<S>;
 
         return {
             get: () => view,
 
-            set: (data: StructInput) => {
+            set: (data: StructValue<S>) => {
                 view = this.create(data, buffer, offset);
             }
         };

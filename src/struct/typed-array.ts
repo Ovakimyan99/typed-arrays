@@ -1,15 +1,15 @@
-import { type TypedStructure } from "../types.ts";
+import { type TypedStructure } from "../types.js";
 
-export class TypedArray {
+export class TypedArray<T extends TypedStructure> {
     byteLength: number;
 
-    constructor(public type: TypedStructure, public length: number) {
+    constructor(public type: T, public length: number) {
         this.byteLength = type.byteLength * length;
         this.length = length;
         this.type = type;
     }
 
-    create(data: ArrayLike<unknown>, buffer = new ArrayBuffer(this.byteLength), offset = 0) {
+    create(data: ArrayLike<T>, buffer = new ArrayBuffer(this.byteLength), offset = 0): TypedArrayView<T> {
         const view = new TypedArrayView(this.type, buffer, this.byteLength, offset);
 
         for (let i = 0; i < this.length && i < data.length; i++) {
@@ -19,26 +19,31 @@ export class TypedArray {
         return view;
     }
 
-    from(buffer = new ArrayBuffer(this.byteLength), offset = 0) {
-        return new TypedArrayView(this.type, buffer, this.byteLength, offset);
+    from<T>(
+        type: TypedStructure<T>,
+        buffer: ArrayBufferLike,
+        length: number,
+        offset = 0,
+    ): TypedArrayView<T> {
+        return new TypedArrayView(type, buffer, length, offset);            
     }
 
     init(buffer: ArrayBuffer, offset: number) {
-        let view = this.from(buffer, offset);
+        let view = this.from(this.type, buffer, this.byteLength, offset);
 
         return {
             get: () => view,
 
-            set: (data: ArrayBuffer) => {
+            set: (data: ArrayLike<T>) => {
                 view = this.create(data, buffer, offset);
             }
         };
     }
 }
 
-class TypedArrayView {
+class TypedArrayView<T> {
     constructor(
-        private type: TypedStructure,
+        private type: TypedStructure<T>,
         private _buffer: ArrayBuffer,
         private _byteLength: number,
         private offset: number
@@ -64,7 +69,7 @@ class TypedArrayView {
         return this.#init(index).get();
     }
 
-    set(index: number, value: unknown) {
+    set(index: number, value: T) {
         this.#init(index).set(value)
     }
 

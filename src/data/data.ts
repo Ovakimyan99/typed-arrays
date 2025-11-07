@@ -1,6 +1,6 @@
-import {PersonArray} from '../index.js'
+import {PersonArrayStructure} from './scheme.js'
 
-export const personArray = PersonArray.create([
+export const personArray = PersonArrayStructure.create([
     {
         age: 42,
         id: 531,
@@ -25,5 +25,3 @@ export const personArray = PersonArray.create([
         color: [0xFF, 0xEE, 0x00],
     },
 ])
-
-console.log(personArray.get(1).firstName)

@@ -5,11 +5,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/examples/data.ts",
+    "bench": "node dist/bench/bench.js"
   },
   "author": "tigr.kman@gmail.com",
   "license": "ISC",
   "devDependencies": {
-    "ts": "^0.2.2"
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }
